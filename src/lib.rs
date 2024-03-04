@@ -41,7 +41,7 @@ pub mod mem;
 pub mod options;
 mod record;
 mod snapshot;
-mod sstable;
+pub mod sstable;
 pub mod storage;
 mod table_cache;
 mod version;
