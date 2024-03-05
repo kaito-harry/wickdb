@@ -1,7 +1,9 @@
 use std::fs::File;
 use std::sync::Arc;
 
-use wickdb::sstable::table::{self, new_table_iterator, Table, TableBuilder};
+use wickdb::db::format::InternalKey;
+use wickdb::sstable::table::{new_table_iterator, Table, TableBuilder};
+use wickdb::ReadOptions;
 use wickdb::{
     db::{
         filename::{generate_filename, FileType},
@@ -10,13 +12,7 @@ use wickdb::{
     mem::{MemTable, MemTableIterator},
     BytewiseComparator, Iterator as _, Options,
 };
-use wickdb::{file, ReadOptions};
 
-// Build a Table file from the contents of `iter`.  The generated file
-// will be named according to `meta.number`.  On success, the rest of
-// meta will be filled with metadata about the generated table.
-// If no data is present in iter, `meta.file_size` will be set to
-// zero, and no Table file will be produced.
 pub fn build_table(
     db_path: &str,
     mut iter: MemTableIterator<BytewiseComparator>,
@@ -97,13 +93,11 @@ fn main() {
 
     let mut expect_key = 10000;
     while iter.valid() {
-        let key = iter.key();
+        let key = InternalKey::decoded_from(iter.key());
         let value = iter.value();
-        let key_str = std::str::from_utf8(&key[0..5]).unwrap();
-        let value_str = std::str::from_utf8(value).unwrap();
-        // assert key,value
-        // assert_eq!(key_str, format!("key {}", expect_key));
-        assert_eq!(value_str, format!("value {}", expect_key));
+        assert_eq!(key.user_key(), format!("key {}", expect_key).as_bytes());
+        assert_eq!(value, format!("value {}", expect_key).as_bytes());
+
         iter.next();
         expect_key += 1;
     }
