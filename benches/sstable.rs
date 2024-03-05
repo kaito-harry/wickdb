@@ -96,7 +96,9 @@ pub fn sstable_benchmark(c: &mut Criterion) {
     let table = Arc::new(table);
     let table_ref = &table;
     let icmp_ref = &icmp;
-    c.bench_function("sstable iter with range 10000..99999 (small value)", |b| {
+
+    let mut group = c.benchmark_group("sstable");
+    group.bench_function("iter with range 10000..99999 (small value)", |b| {
         b.iter(|| {
             let mut iter =
                 new_table_iterator(icmp_ref.clone(), table_ref.clone(), ReadOptions::default());
@@ -126,7 +128,7 @@ pub fn sstable_benchmark(c: &mut Criterion) {
 
     let table = Arc::new(table);
     let table_ref = &table;
-    c.bench_function("sstable iter with range 100..999 (big value)", |b| {
+    group.bench_function("iter with range 100..999 (big value)", |b| {
         b.iter(|| {
             let mut iter =
                 new_table_iterator(icmp_ref.clone(), table_ref.clone(), ReadOptions::default());
